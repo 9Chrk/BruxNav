@@ -1,167 +1,100 @@
 # BruxNav
 
-![Java](https://img.shields.io/badge/Java-11%2B-blue?style=flat-square) ![License](https://img.shields.io/badge/license-Academic-lightgrey?style=flat-square)
+![Java](https://img.shields.io/badge/Java-21-blue?style=flat-square)
+![Maven](https://img.shields.io/badge/build-Maven-C71A36?style=flat-square)
 
-> **BruxNav** est un calculateur d’itinéraires multimodal couvrant l’ensemble des transports publics belges (STIB, TEC, DeLijn, SNCB). Donnez un arrêt de départ, un arrêt d’arrivée, une heure: il vous renvoie la combinaison optimale de bus, tram, métro, train et marche à pied.
+BruxNav est une application Java en ligne de commande qui charge des données GTFS organisées par agence, construit un graphe multimodal d’arrêts et peut rechercher un itinéraire entre deux arrêts à une heure donnée. La recherche combine les segments de transport des horaires GTFS et les correspondances à pied entre arrêts proches.
 
-| <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Belgium_road_map.png" width="550"/> | ![img.png](output.png) |
-|:-------------------------------------------------------------------------------------------------:|:----------------------:|
+> Projet académique ULB — INFO-F203.
 
----
+## Aperçu
+
+![Sortie de BruxNav](output.png)
 
 ## Sommaire
 
-* [Fonctionnalités](#fonctionnalités)
-* [Prérequis](#prérequis)
-* [Installation &amp; Compilation](#installation--compilation)
-* [Utilisation](#utilisation)
-* [Options avancées](#options-avancées)
-* [Organisation du projet](#organisation-du-projet)
-* [Algorithme](#architecture-et-algorithme)
-* [Données](#données)
-* [Auteurs](#auteurs)
+- [Fonctionnalités](#fonctionnalités)
+- [Prérequis](#prérequis)
+- [Installation et compilation](#installation-et-compilation)
+- [Préparer les données GTFS](#préparer-les-données-gtfs)
+- [Utilisation](#utilisation)
+- [Architecture](#architecture)
+- [Document du projet](#document-du-projet)
+- [Auteur](#auteur)
 
 ## Fonctionnalités
 
-* **Multimodal complet**: intègre les jeux de données GTFS des 4 opérateurs belges.
-* **Optimisation temporelle**: variante de Dijkstra (A*) tenant compte des horaires et des temps d’attente.
-* **Correspondances à pied** avec pénalités configurables.
-* **Modes de coût**: minimisation du temps, du nombre de changements, pénalisation sélective par mode, etc.
-* **Interface CLI**
+- Chargement des arrêts, lignes, trajets et horaires depuis les fichiers CSV GTFS de chaque agence.
+- Fusion des données d’agence dans un modèle global.
+- Génération d’arêtes de transport entre les arrêts consécutifs de chaque trajet.
+- Génération de liaisons piétonnes entre les arrêts situés dans un rayon de 1 km.
+- Recherche A* dépendante de l’heure de départ, avec pénalités de changement de mode ou de ligne.
+- Affichage dans le terminal des étapes à pied et en transport, avec leurs horaires.
 
 ## Prérequis
 
-* **JDK11+** (OpenJDK ou Oracle).
-* ⚠ Jeux de données CSV structurés dans `BruxNav/GTSF/<Agence>/{routes,stops,trips,stop_times}.csv`.
+- JDK 21.
+- Maven.
+- Des données GTFS CSV, rangées dans un répertoire racine contenant un sous-répertoire par agence.
 
-## Installation & Compilation
+## Installation et compilation
 
 ```bash
-git clone https://github.com/9Jawad/BruxNav.git
+git clone https://github.com/9Chrk/BruxNav.git
 cd BruxNav
-
-# clean
-mvn clean
-
-# test
-mvn test
-
-# Compilation
 mvn package
 ```
 
+La compilation produit le JAR exécutable `target/stibpath-1.0-SNAPSHOT.jar`.
+
+## Préparer les données GTFS
+
+Le programme reçoit comme premier argument le répertoire racine des données. Chaque sous-répertoire de cette racine est traité comme une agence et doit fournir les quatre fichiers suivants.
+
+Les colonnes utilisées sont :
+
+| Fichier | Colonnes requises |
+| --- | --- |
+| `stops.csv` | `stop_id`, `stop_name`, `stop_lat`, `stop_lon` |
+| `routes.csv` | `route_id`, `route_short_name`, `route_long_name`, `route_type` |
+| `trips.csv` | `trip_id`, `route_id` |
+| `stop_times.csv` | `trip_id`, `stop_id`, `departure_time`, `stop_sequence` |
+
 ## Utilisation
 
-```bash
-java -jar stibpath-1.0-SNAPSHOT.jar <gtfs-root> "<srcName>" "<dstName>" "<HH:mm:ss>"
+Le JAR accepte un répertoire racine GTFS en premier argument. Avec ce seul argument, il charge les agences et construit le graphe multimodal.
 
+Pour lancer une recherche, ajoutez, dans cet ordre, le nom de l’arrêt de départ, le nom de l’arrêt d’arrivée et l’heure de départ au format `HH:mm:ss`. Les noms d’arrêts sont comparés sans tenir compte de la casse et doivent être présents dans les données chargées.
+
+Les données GTFS ne sont pas incluses dans ce dépôt ; l’exécution nécessite donc de fournir un répertoire conforme à la structure décrite ci-dessus.
+
+## Architecture
+
+```text
+src/main/java/be/ulb/stib/
+├── Main.java                 # Point d’entrée et orchestration
+├── algo/AStarTD.java         # Recherche A* dépendante du temps
+├── core/                     # Entités du réseau et types d’arêtes
+├── data/                     # Modèles d’agence et modèle global
+├── graph/                    # Graphe multimodal
+├── output/                   # Mise en forme d’un itinéraire
+├── parsing/                  # Chargeurs des fichiers CSV GTFS
+├── spatial/                  # KD-tree et génération des liaisons piétonnes
+└── tools/                    # Lecteur CSV et utilitaires de chargement
 ```
 
-### Exemples
+Le flux principal est le suivant :
 
-```bash
-java -jar target\stibpath-1.0-SNAPSHOT.jar .\GTFS "TRONE" "BRUSSELS AIRPORT" "04:30:00"
+```text
+Données GTFS → modèles d’agence → modèle global
+             → arêtes de transport + arêtes de marche → graphe multimodal
+             → recherche A* → itinéraire affiché dans le terminal
 ```
 
-### Options avancées
+## Document du projet
 
-| Option                | Description                              | Valeur par défaut  |
-| --------------------- | ---------------------------------------- | ------------------ |
-| `--min-changes`       | Minimise le nombre de correspondances    | *désactivé*        |
-| `--avoid=<MODE>`      | Évite un mode (TRAIN, TRAM, BUS, METRO)  | *désactivé*        |
-| `--walk-factor=<k>`   | Multiplie le temps de marche par*k*      | *désactivé*        |
+- [Projet.pdf](Projet.pdf)
 
-Pas eu le temps d'implémenter malheureusement...
+## Auteur
 
-## Organisation du projet
-
-```txt
-BruxNav/
-├── GTFS/
-│   ├── DELIJN/
-│   │   └── {routes.csv, stops.csv, trips.csv, stop_times.csv}
-│   ├── SNCB/
-│   ├── STIB/
-│   └── TEC/
-│
-├── src/
-│   └── main/
-│       └── java/
-│           └── be/
-│               └── ulb/
-│                   └── stib/
-│                       ├── Main.java
-│                       ├── algo/
-│                       │   └── AStarTD.java                      # Algorithme A* time-dependent
-│                       ├── core/
-│                       │   ├── Edge.java
-│                       │   ├── Route.java
-│                       │   ├── Stop.java
-│                       │   ├── StopTime.java
-│                       │   ├── TransitEdge.java
-│                       │   ├── Trip.java
-│                       │   └── WalkEdge.java
-│                       ├── data/
-│                       │   ├── AgencyModel.java
-│                       │   ├── GlobalModel.java
-│                       │   └── StringPool.java
-│                       ├── graph/
-│                       │   └── MultiModalGraph.java
-│                       ├── output/
-│                       │   └── ItineraryFormatter.java
-│                       ├── parsing/
-│                       │   ├── RouteLoader.java
-│                       │   ├── StopLoader.java
-│                       │   ├── StopTimesLoader.java
-│                       │   └── TripLoader.java
-│                       ├── spatial/
-│                       │   ├── KDTree.java
-│                       │   ├── Node.java
-│                       │   ├── TransitEdgeGenerator.java
-│                       │   └── WalkEdgeGenerator.java
-│                       └── tools/
-│                           ├── CsvReader.java
-│                           └── Utils.java
-│
-├── pom.xml
-└── README.md
-
-```
-
-## Architecture et algorithme
-
-1. **Chargement GTFS**: via `AgencyModel` (maps).
-2. **Fusion**: `GlobalModel` (union des maps + pools de chaînes unifiés).
-3. **KD-Tree**: recherche binaire pour trouver le voisinage spatial
-4. **Génération d’arcs** :
-   piétons (`WalkEdgeGenerator`, rayon r)
-
-   (arcs bidirectionnels ajoutés en fonction d'un rayon <1km.)
-
-   transit (`TransitEdgeGenerator`, séquence de Trip)
-5. **Graphe multimodal**: `HashMap<StopId, List<Edge>>`.
-6. **A***: dépendant du temps, pénalités correspondance.
-7. **ItineraryFormatter**: sortie lisible (format présent dans le PDF du projet).
-
-Complexité: **O(k logN)**.
-
-## Données
-
-Chaque agence fournit:
-
-| Fichier            | Contenu                   |
-| ------------------ | ------------------------- |
-| `routes.csv`     | Métadonnées des lignes  |
-| `stops.csv`      | Coordonnées des arrêts  |
-| `trips.csv`      | Identifiants des trajets  |
-| `stop_times.csv` | Horaires au pas d’arrêt |
-
-Placez les CSV dans `GTFS/<Agence>/`.
-
-## Auteurs
-
-* *Cherkaoui Jawad (576517)*
-
----
-
-© 2025 — Projet académique INFO‑F203, Université libre de Bruxelles.
+- Cherkaoui Jawad (576517)
