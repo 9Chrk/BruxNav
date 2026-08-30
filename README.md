@@ -203,9 +203,3 @@ Le projet est compilé avec la release 21. Vérifiez que `java --version` et `mv
 ## 📄 Documentation
 
 - [Document du projet](Projet.pdf)
-
-<a id="auteur"></a>
-
-## 👤 Auteur
-
-- Cherkaoui Jawad (576517)
