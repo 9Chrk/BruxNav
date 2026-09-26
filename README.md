@@ -10,8 +10,6 @@ Le programme rassemble plusieurs réseaux dans un graphe multimodal et utilise u
 
 > Projet académique ULB — INFO-F203.
 
----
-
 <a id="captures-decran"></a>
 
 ## 📸 Captures d’écran
@@ -38,8 +36,6 @@ Cette exécution illustre le chargement de plusieurs agences, la construction du
 - [Problèmes fréquents](#problemes-frequents)
 - [Documentation](#documentation)
 
----
-
 <a id="fonctionnalites"></a>
 
 ## ✨ Fonctionnalités
@@ -52,8 +48,6 @@ Cette exécution illustre le chargement de plusieurs agences, la construction du
 - **Itinéraire lisible** : affiche les segments de marche et de transport avec les arrêts, l’agence, le type de ligne, la ligne et les horaires.
 - **Mesures d’exécution** : affiche les durées de chargement, de fusion, de construction du graphe et, lorsqu’une recherche est demandée, de calcul d’itinéraire.
 
----
-
 <a id="prerequis"></a>
 
 ## 🧰 Prérequis
@@ -63,8 +57,6 @@ Cette exécution illustre le chargement de plusieurs agences, la construction du
 - Un répertoire de données GTFS CSV conforme à la structure décrite dans la section suivante.
 
 Les dépendances de production sont `opencsv` 5.9 pour la lecture CSV et `fastutil` 8.5.12 pour les collections. JUnit Jupiter 5.11.0 est déclaré pour les tests.
-
----
 
 <a id="configuration-des-donnees-gtfs"></a>
 
@@ -81,8 +73,6 @@ Le premier argument du programme est le répertoire racine GTFS. Chaque sous-ré
 
 Les fichiers sont lus en UTF-8. Les horaires de `stop_times.csv` sont interprétés au format `HH:mm:ss`, puis convertis en secondes depuis minuit. Les lignes de ce fichier sont finalement ordonnées selon `stop_sequence` pour chaque trajet.
 
----
-
 <a id="installation"></a>
 
 ## 📦 Installation
@@ -95,8 +85,6 @@ mvn package
 
 La phase `package` exécute le plugin Shade et produit le JAR exécutable `target/stibpath-1.0-SNAPSHOT.jar`, avec ses dépendances et `be.ulb.stib.Main` comme classe principale.
 
----
-
 <a id="lancement"></a>
 
 ## ▶️ Lancement
@@ -106,8 +94,6 @@ Après compilation, lancez le JAR en lui donnant le chemin de votre répertoire 
 L’invocation commence par `java -jar target/stibpath-1.0-SNAPSHOT.jar`, suivi du chemin réel vers ce répertoire.
 
 Pour lancer directement la classe principale par Maven, la configuration du plugin `exec-maven-plugin` définit `be.ulb.stib.Main` comme point d’entrée.
-
----
 
 <a id="utilisation"></a>
 
@@ -119,8 +105,6 @@ Après le chemin GTFS, l’ordre des arguments est : nom de l’arrêt de dépar
 
 Les noms d’arrêt sont comparés sans tenir compte de la casse. Ils doivent correspondre à des noms présents dans les données chargées. Si aucun chemin n’est trouvé, le programme affiche `No path found.` ; si un nom d’arrêt est absent, la recherche lève une erreur indiquant que l’arrêt est introuvable.
 
----
-
 <a id="donnees-gtfs"></a>
 
 ## 🗃️ Données GTFS
@@ -128,8 +112,6 @@ Les noms d’arrêt sont comparés sans tenir compte de la casse. Ils doivent co
 Les données ne sont pas versionnées dans le dépôt. Leur organisation par agence permet au programme de charger plusieurs réseaux depuis une même racine, puis de les fusionner avant la recherche.
 
 `StopLoader`, `RouteLoader`, `TripLoader` et `StopTimesLoader`, dans `src/main/java/be/ulb/stib/parsing/`, alimentent chacun un `AgencyModel`. Les identifiants GTFS servent de clés pour relier les arrêts, lignes, trajets et horaires lors de cette phase.
-
----
 
 <a id="architecture"></a>
 
@@ -142,8 +124,6 @@ La couche `parsing/` lit les quatre fichiers GTFS à travers `tools/CsvReader.ja
 `spatial/` produit les connexions du réseau. `TransitEdgeGenerator.java` transforme les paires d’horaires successives de chaque `Trip` en `TransitEdge`. `WalkEdgeGenerator.java` construit un `KDTree`, recherche les arrêts dans un rayon d’un kilomètre et crée les `WalkEdge` avec un coût calculé à partir des coordonnées. `graph/MultiModalGraph.java` indexe ensuite ces deux types d’arêtes sortantes par identifiant d’arrêt.
 
 Enfin, `algo/AStarTD.java` interroge ce graphe et `output/ItineraryFormatter.java` restitue le chemin. Les données restent en mémoire pendant toute l’exécution : le projet n’emploie ni base de données ni service réseau.
-
----
 
 <a id="flux-general"></a>
 
@@ -167,8 +147,6 @@ répertoire GTFS
 
 Lors de la recherche, `AStarTD` maintient le meilleur temps d’arrivée connu par arrêt et une file de priorité. Pour une arête de transport, il écarte les départs déjà passés ; pour une arête piétonne, il ajoute simplement sa durée au temps courant. Sa priorité combine le temps d’arrivée, une estimation à vol d’oiseau jusqu’à la destination et des pénalités de 5 minutes lors d’un changement de mode ou de 2 minutes lors d’un changement de ligne. Les arêtes parentes permettent de reconstruire le chemin trouvé dans l’ordre du départ vers l’arrivée.
 
----
-
 <a id="structure-du-projet"></a>
 
 ## 📂 Structure du projet
@@ -191,8 +169,6 @@ BruxNav/
 └── README.md
 ```
 
----
-
 <a id="tests"></a>
 
 ## 🧪 Tests
@@ -202,8 +178,6 @@ Le projet déclare JUnit Jupiter et le plugin Maven Surefire dans `pom.xml`. Auc
 ```bash
 mvn test
 ```
-
----
 
 <a id="problemes-frequents"></a>
 
@@ -224,8 +198,6 @@ Les deux noms doivent être présents dans les données chargées. La recherche 
 ### La compilation échoue sur la version de Java
 
 Le projet est compilé avec la release 21. Vérifiez que `java --version` et `mvn --version` pointent vers un JDK 21.
-
----
 
 <a id="documentation"></a>
 
