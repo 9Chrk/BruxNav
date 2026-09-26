@@ -1,8 +1,9 @@
 # BruxNav
 
-![Java](https://img.shields.io/badge/Java-21-blue?style=flat-square)
+![Java](https://shields.io)
 ![Maven](https://img.shields.io/badge/build-Maven-C71A36?style=flat-square)
-![Données](https://img.shields.io/badge/donn%C3%A9es-GTFS%20CSV-2E8B57?style=flat-square)
+![Données](https://shields.io)
+
 
 BruxNav est un **calculateur d’itinéraires en transports publics et à pied**, développé en **Java 21**. À partir de données GTFS, il recherche un trajet selon les arrêts de départ et d’arrivée et l’heure choisie, puis affiche les étapes et les horaires dans le terminal.
 
