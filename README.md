@@ -6,7 +6,7 @@ BruxNav est un **calculateur d’itinéraires en transports publics et à pied**
 
 Le programme rassemble plusieurs réseaux dans un graphe multimodal et utilise une recherche A* dépendante du temps. Le projet se compile avec Maven ; les données GTFS doivent être fournies séparément.
 
-> Projet académique ULB — INFO-F203.
+> Projet académique ULB — INFO-F203 Algorithmique 2 · 2024-2025
 
 <a id="captures-decran"></a>
 
@@ -34,6 +34,7 @@ Cette exécution illustre le chargement de plusieurs agences, la construction du
 - [Tests](#tests)
 - [Problèmes fréquents](#problemes-frequents)
 - [Documentation](#documentation)
+- [Licence](#licence)
 
 <a id="fonctionnalites"></a>
 
@@ -203,3 +204,9 @@ Le projet est compilé avec la release 21. Vérifiez que `java --version` et `mv
 ## 📄 Documentation
 
 - [Document du projet](Projet.pdf)
+
+<a id="licence"></a>
+
+## 📜 Licence
+
+Ce projet est distribué sous licence [MIT](LICENSE).
