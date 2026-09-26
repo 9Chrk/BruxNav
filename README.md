@@ -12,6 +12,7 @@ Le programme rassemble plusieurs réseaux dans un graphe multimodal et utilise u
 
 ## 📸 Captures d’écran
 
+| Image Fictive | Output |
 | --- | --- |
 | ![Image fictive](https://github.com/user-attachments/assets/6cb4cd00-c550-46c2-9ef6-e3b0935124bd) | ![Sortie de BruxNav](https://github.com/user-attachments/assets/7eac17bf-69c1-45a3-ab2b-55c073e9e434) |
 
